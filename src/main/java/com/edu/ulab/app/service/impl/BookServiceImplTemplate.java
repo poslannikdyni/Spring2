@@ -142,18 +142,4 @@ public class BookServiceImplTemplate implements BookService {
         log.info("Get book by userId = {} successfully", userId);
         return bookDtoList;
     }
-
-    @Override
-    public void deleteUserBookBinding(Long userId) {
-        exceptionUtility.throwServiceExceptionIfNull(userId, "Delete user book by userId failed : userId is null");
-
-        try {
-            final String DELETE_BOOK_DINDING_SQL = "DELETE FROM USER_BOOK WHERE USER_ID = ?";
-            jdbcTemplate.update(DELETE_BOOK_DINDING_SQL, userId);
-        } catch (Exception e) {
-            exceptionUtility.throwServiceException(String.format("Delete user book by userId = %s failed", userId));
-        }
-
-        log.info("Delete user book by userId successfully. UserId = {}", userId);
-    }
 }

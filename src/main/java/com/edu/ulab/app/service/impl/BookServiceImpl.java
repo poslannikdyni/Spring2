@@ -2,10 +2,8 @@ package com.edu.ulab.app.service.impl;
 
 import com.edu.ulab.app.dto.BookDto;
 import com.edu.ulab.app.entity.Book;
-import com.edu.ulab.app.entity.UserBook;
 import com.edu.ulab.app.mapper.BookMapper;
 import com.edu.ulab.app.repository.BookRepository;
-import com.edu.ulab.app.repository.UserBookRepository;
 import com.edu.ulab.app.repository.UserRepository;
 import com.edu.ulab.app.service.BookService;
 import com.edu.ulab.app.utility.ExceptionUtility;
@@ -26,20 +24,16 @@ public class BookServiceImpl implements BookService {
 
     private final UserRepository userRepository;
 
-    private final UserBookRepository userBookRepository;
-
     private final BookMapper bookMapper;
 
     private final ExceptionUtility exceptionUtility;
 
     public BookServiceImpl(BookRepository bookRepository,
                            UserRepository userRepository,
-                           UserBookRepository userBookRepository,
                            BookMapper bookMapper,
                            ExceptionUtility exceptionUtility) {
         this.bookRepository = bookRepository;
         this.userRepository = userRepository;
-        this.userBookRepository = userBookRepository;
         this.bookMapper = bookMapper;
         this.exceptionUtility = exceptionUtility;
 
@@ -65,16 +59,6 @@ public class BookServiceImpl implements BookService {
             exceptionUtility.throwServiceException(e, "Create book failed.");
         }
         log.info("Create book successfully {}", book);
-
-        // Create user-book binding.
-        UserBook userBook = null;
-        try {
-            userBook = userBookRepository.save(new UserBook(IdGenerator.nextUserBookId(), book.getUserId(), book.getId()));
-        } catch (Exception e) {
-            exceptionUtility.throwServiceException("Create user-book binding failed.");
-        }
-
-        log.info("Create user-book binding successfully {}", userBook);
         return bookMapper.bookToBookDto(book);
     }
 
@@ -133,9 +117,8 @@ public class BookServiceImpl implements BookService {
 
         List<BookDto> bookDtoList = Collections.emptyList();
         try {
-            bookDtoList = userBookRepository.findByUserId(userId)
+            bookDtoList = bookRepository.findByUserId(userId)
                     .stream()
-                    .map(userBook -> bookRepository.findById(userBook.getBookId()).get())
                     .filter(Objects::nonNull)
                     .map(bookMapper::bookToBookDto)
                     .collect(Collectors.toList());
@@ -145,18 +128,5 @@ public class BookServiceImpl implements BookService {
 
         log.info("Get book by userId = {} successfully", userId);
         return bookDtoList;
-    }
-
-    @Override
-    public void deleteUserBookBinding(Long userId) {
-        exceptionUtility.throwServiceExceptionIfNull(userId, "Delete user book by userId failed : userId is null");
-
-        try {
-            userBookRepository.removeByUserId(userId);
-        } catch (Exception e) {
-            exceptionUtility.throwServiceException(String.format("Delete user book by userId = %s failed", userId));
-        }
-
-        log.info("Delete user book by userId successfully. UserId = {}", userId);
     }
 }

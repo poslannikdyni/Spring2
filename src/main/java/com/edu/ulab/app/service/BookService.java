@@ -15,6 +15,4 @@ public interface BookService {
     void deleteBookById(Long id);
 
     List<BookDto> getBookByUserId(Long userId);
-
-    void deleteUserBookBinding(Long userId);
 }

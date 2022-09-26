@@ -6,7 +6,9 @@ import com.edu.ulab.app.mapper.BookMapper;
 import com.edu.ulab.app.mapper.UserMapper;
 import com.edu.ulab.app.service.BookService;
 import com.edu.ulab.app.service.UserService;
+import com.edu.ulab.app.service.impl.BookServiceImpl;
 import com.edu.ulab.app.service.impl.BookServiceImplTemplate;
+import com.edu.ulab.app.service.impl.UserServiceImpl;
 import com.edu.ulab.app.service.impl.UserServiceImplTemplate;
 import com.edu.ulab.app.web.request.UserBookRequest;
 import com.edu.ulab.app.web.response.UserBookResponse;
@@ -25,10 +27,10 @@ public class UserDataFacade {
     private final BookMapper bookMapper;
 
     public UserDataFacade(
-//            UserServiceImpl userService,
-//                          BookServiceImpl bookService,
-            UserServiceImplTemplate userService,
-            BookServiceImplTemplate bookService,
+            UserServiceImpl userService,
+                          BookServiceImpl bookService,
+//            UserServiceImplTemplate userService,
+//            BookServiceImplTemplate bookService,
             UserMapper userMapper,
             BookMapper bookMapper) {
         this.userService = userService;
@@ -110,7 +112,13 @@ public class UserDataFacade {
         userService.deleteUserById(userId);
         log.info("Delete user: {}", userId);
 
-        bookService.deleteUserBookBinding(userId);
-        log.info("Delete user-book binding by user id {} ", userId);
+        List<BookDto> books = bookService.getBookByUserId(userId);
+        long deletedBooks = books.stream()
+                .filter(Objects::nonNull)
+                .map(bookDto -> bookDto.getId())
+                .peek(bookService::deleteBookById)
+                .count();
+
+        log.info("Delete : {} books", deletedBooks);
     }
 }
